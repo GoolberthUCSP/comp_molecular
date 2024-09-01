@@ -2,6 +2,7 @@
 #include<utility>
 #include<string>
 #include<vector>
+#include<fstream>
 
 using namespace std;
 
@@ -16,6 +17,8 @@ void fill_dp(int **dp, string &s1, string &s2, int m, int n){
                 dp[i][j] = max(dp[i-1][j] - 2, max(dp[i][j-1] - 2, dp[i-1][j-1] + (s1[i-1] == s2[j-1] ? 1 : -1)));
         }
     }
+
+    cout << "Global alignment score: " << dp[m][n] << endl;
 }
 
 // Needelman-Wunsch Algorithm
@@ -115,24 +118,48 @@ vector<pair<string, string>> all_pairwise_alignment(string s1, string s2){
 
     fill_dp(dp, s1, s2, m, n);
 
-    cout << "Global alignment score: " << dp[m][n] << endl;
     recursive(dp, m, n, s1, s2, results);
     return results;
 }
 
-
-
-int main(){
-    // Obtain the unique result
-    pair<string, string> result = pairwise_alignment("AAAC", "AGC");
-    cout << result.first << endl;
-    cout << result.second << endl << endl;
-
-    // Obtain all the optimal results
-    vector<pair<string, string>> results = all_pairwise_alignment("AAAC", "AGC");
-    for(int i = 0; i < results.size(); i++){
-        cout << results[i].first << endl;
-        cout << results[i].second << endl << endl;
+/*
+Input: AAAC AGC [0|1]
+Output: 
+    Global alignment score: 0
+    AAAC
+    -AGC
+Third string: All results? [0|1]
+*/
+int main(int argc, char *argv[]) {
+    if (argc != 4) {
+        cout << "Usage: " << argv[0] << " s1 s2 [0|1]" << endl;
+        exit(1);
     }
+    int type = atoi(argv[3]);
+    if (type != 0 && type != 1) {
+        cout << "Usage: " << argv[0] << " s1 s2 [0|1]" << endl;
+        exit(1);
+    }
+    
+    ofstream fout("result.txt");
+    string s1 = argv[1];
+    string s2 = argv[2];
+    if (type == 0) {
+        // Obtain the unique result
+        pair<string, string> result = pairwise_alignment(s1, s2);
+        fout << "1" << endl;
+        fout << result.first << endl;
+        fout << result.second << endl;
+    } else {
+        // Obtain all the optimal results
+        vector<pair<string, string>> results = all_pairwise_alignment(s1, s2);
+        fout << results.size() << endl;
+        for(int i = 0; i < results.size(); i++){
+            fout << results[i].first << endl;
+            fout << results[i].second << endl;
+        }
+    }
+
+    fout.close();
     return 0;
 }
