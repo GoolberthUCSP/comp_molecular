@@ -3,6 +3,9 @@
 #include<string>
 #include<vector>
 #include<fstream>
+#include <stack>
+#include <tuple>
+#include <unordered_map>
 
 using namespace std;
 
@@ -107,6 +110,52 @@ void recursive(int **dp, int i, int j, string &s1, string &s2, vector<pair<strin
     }
 }
 
+void iterative(int **dp, int i, int j, string &s1, string &s2, vector<pair<string, string>> &results) {
+    stack<tuple<int, int, pair<string, string>>> stk;
+    stk.push(make_tuple(i, j, pair<string, string>("", "")));
+
+    while (!stk.empty()) {
+        auto [ci, cj, result] = stk.top();
+        stk.pop();
+
+        if (ci == 0 && cj == 0) {
+            string reversed_first = string(result.first.rbegin(), result.first.rend());
+            string reversed_second = string(result.second.rbegin(), result.second.rend());
+            results.push_back(make_pair(reversed_first, reversed_second));
+            continue;
+        }
+
+        if (ci == 0) {  // cj > 0
+            result.first += "-";
+            result.second += s2[cj - 1];
+            stk.push(make_tuple(ci, cj - 1, result));
+        } else if (cj == 0) {  // ci > 0
+            result.first += s1[ci - 1];
+            result.second += "-";
+            stk.push(make_tuple(ci - 1, cj, result));
+        } else {  // ci > 0 && cj > 0
+            if (dp[ci][cj] == dp[ci - 1][cj - 1] + (s1[ci - 1] == s2[cj - 1] ? 1 : -1)) {
+                auto new_result = result;
+                new_result.first += s1[ci - 1];
+                new_result.second += s2[cj - 1];
+                stk.push(make_tuple(ci - 1, cj - 1, new_result));
+            }
+            if (dp[ci][cj] == dp[ci - 1][cj] - 2) {
+                auto new_result = result;
+                new_result.first += s1[ci - 1];
+                new_result.second += "-";
+                stk.push(make_tuple(ci - 1, cj, new_result));
+            }
+            if (dp[ci][cj] == dp[ci][cj - 1] - 2) {
+                auto new_result = result;
+                new_result.first += "-";
+                new_result.second += s2[cj - 1];
+                stk.push(make_tuple(ci, cj - 1, new_result));
+            }
+        }
+    }
+}
+
 vector<pair<string, string>> all_pairwise_alignment(string s1, string s2){
     int m = s1.size();
     int n = s2.size();
@@ -118,7 +167,7 @@ vector<pair<string, string>> all_pairwise_alignment(string s1, string s2){
 
     fill_dp(dp, s1, s2, m, n);
 
-    recursive(dp, m, n, s1, s2, results);
+    iterative(dp, m, n, s1, s2, results);
     return results;
 }
 
@@ -147,19 +196,18 @@ int main(int argc, char *argv[]) {
     if (type == 0) {
         // Obtain the unique result
         pair<string, string> result = pairwise_alignment(s1, s2);
-        fout << "1" << endl;
-        fout << result.first << endl;
-        fout << result.second << endl;
+        fout << "1";
+        fout << endl << result.first;
+        fout << endl << result.second;
     } else {
         // Obtain all the optimal results
         vector<pair<string, string>> results = all_pairwise_alignment(s1, s2);
-        fout << results.size() << endl;
+        fout << results.size();
         for(int i = 0; i < results.size(); i++){
-            fout << results[i].first << endl;
-            fout << results[i].second << endl;
+            fout << endl << results[i].first;
+            fout << endl << results[i].second;
         }
     }
-
     fout.close();
     return 0;
 }
