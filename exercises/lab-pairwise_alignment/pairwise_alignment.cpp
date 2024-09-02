@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     
-    ofstream fout("result.txt");
+    ofstream fout("output\\result.txt");
     string s1 = argv[1];
     string s2 = argv[2];
     if (type == 0) {

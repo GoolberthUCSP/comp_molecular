@@ -7,11 +7,12 @@
 
 using namespace std;
 
+ofstream fout("output\\best_result.txt");
 int get_n_cuts(pair<string, string> &pair_);
 pair<string, string> get_best_alignment(vector<pair<string, string>> &pairs);
 
 int main(int argc, char *argv[]){
-    string filename = "result.txt";
+    string filename = "output\\result.txt";
     vector<pair<string, string>> results;
     ifstream file(filename);
     string line, s1, s2;
@@ -26,8 +27,11 @@ int main(int argc, char *argv[]){
     file.close();
 
     pair<string, string> best = get_best_alignment(results);
-    cout << best.first << endl;
-    cout << best.second << endl;
+    fout << endl << best.first;
+    fout << endl << best.second;
+
+    fout.close();
+    return 0;
 }
 
 int get_n_cuts(pair<string, string> &pair_){
@@ -62,6 +66,6 @@ pair<string, string> get_best_alignment(vector<pair<string, string>> &pairs){
             best_idx = i;
         }
     }
-    cout << "Lowest number of cuts: " << best << endl;
+    fout << "Lowest number of cuts: " << best;
     return pairs[best_idx];
 }
