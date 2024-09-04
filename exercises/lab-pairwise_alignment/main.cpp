@@ -47,7 +47,9 @@ int main(int argc, char *argv[]){
     cmd += sequences[index1];
     cmd += " ";
     cmd += sequences[index2];
-    cmd += " 1000 && del pairwise_alignment.exe";
+    cmd += " 2000 && del pairwise_alignment.exe";
+    cmd += " && g++ -o best_alignment.exe best_alignment.cpp && best_alignment.exe && del best_alignment.exe";
+    cmd += " && python point_mtx.py " + species[index1] + " " + species[index2];
     system(cmd.c_str());
 
     return 0;
