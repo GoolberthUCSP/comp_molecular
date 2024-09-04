@@ -47,7 +47,7 @@ int main(int argc, char *argv[]){
     cmd += sequences[index1];
     cmd += " ";
     cmd += sequences[index2];
-    cmd += " 0 && del pairwise_alignment.exe";
+    cmd += " 1000 && del pairwise_alignment.exe";
     system(cmd.c_str());
 
     return 0;
