@@ -7,12 +7,12 @@
 
 using namespace std;
 
-ofstream fout("output\\best_result.txt");
+ofstream fout("data\\best_result.txt");
 int get_n_cuts(pair<string, string> &pair_);
 pair<string, string> get_best_alignment(vector<pair<string, string>> &pairs);
 
 int main(int argc, char *argv[]){
-    string filename = "output\\result.txt";
+    string filename = "data\\result.txt";
     vector<pair<string, string>> results;
     ifstream file(filename);
     string line, s1, s2;
