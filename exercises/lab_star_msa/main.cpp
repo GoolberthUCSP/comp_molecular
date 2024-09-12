@@ -1,11 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 #include <windows.h>
 
 using namespace std;
 
-const string filename = "sequences.txt";
+const string filename = "data\\sequences.txt"; //"data\\brca1\\reverse.txt";
 
 int main(){
     ifstream fin(filename);
@@ -27,6 +28,7 @@ int main(){
     for (int i = 0; i < n; i++){
         cmd += sequences[i] + " ";
     }
+    cmd += " && del star_msa.exe";
     system(cmd.c_str());
 
     return 0;

@@ -1,5 +1,8 @@
 // C++ Program to demonstrate thread pooling 
 // Credits: https://www.geeksforgeeks.org/thread-pool-in-cpp/
+#ifndef THREADPOOL_H
+#define THREADPOOL_H
+
 #include <condition_variable> 
 #include <functional> 
 #include <iostream> 
@@ -101,3 +104,5 @@ private:
 	// or not 
 	bool stop_ = false; 
 };
+
+#endif // THREADPOOL_H
