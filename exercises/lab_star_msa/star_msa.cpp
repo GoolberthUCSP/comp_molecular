@@ -2,12 +2,10 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include "../lib/threadpool.h"
 #include "../lib/pairwise_alignment.h"
 
 using namespace std;
 
-const int POOL_SIZE = thread::hardware_concurrency();
 const string out_file = "data\\star_msa.txt";
 
 void star_msa(vector<string> &strings);
