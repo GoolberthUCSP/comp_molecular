@@ -33,32 +33,11 @@ class PhylogeneticTree:
             
         return list(nodes)
     
-    def generate_distance_matrix(self):
+    def gen_dist_mtx(self):
         self.dist_mat = {}
         for i in range(len(self.sequences)):
             for j in range(i+1, len(self.sequences)):
                 self.dist_mat[(i+1, j+1)] = self.calc_distance(self.sequences[i], self.sequences[j])
-        
-    def print_distance_matrix(self):
-        print(self.name, 'distance matrix')
-        nodes = self.nodes()
-        nodes.sort()
-        print('-', end='')
-        for node in nodes:
-            print(f'\t{node}', end='')
-        print()
-        print('----', end='')
-        for node in nodes:
-            print('\t----', end='')
-        print()
-        for i in nodes:
-            print(i, end='')
-            for j in nodes:
-                if (i,j) in self.dist_mat:
-                    print(f'\t{self.dist_mat[(i,j)]:.2f}', end='')
-                else:
-                    print('\t-', end='')
-            print()
 
     def distance(self, a, b):
         raise NotImplementedError('abstract class')
@@ -74,8 +53,7 @@ class PhylogeneticTree:
         dot.attr('edge', fontname='Courier', fontsize='7pt')
         dot.attr('node', shape='plain')
         
-        self.generate_distance_matrix()
-        self.print_distance_matrix()
+        self.gen_dist_mtx()
         diff_mat = {}
         for i in range(len(self.sequences)):
             dot.node(str(i+1), label=f'{i+1}: {self.sequences[i]}')
@@ -86,7 +64,6 @@ class PhylogeneticTree:
         dot.attr('node', shape='point')
         
         while len(self.dist_mat.keys()) > 0:
-            #obtener el par de nodos con menor distancia
             min_pair = None
             dist_pair = 10**18
             nodes = self.nodes()
@@ -95,8 +72,7 @@ class PhylogeneticTree:
                     if self.distance(nodes[i], nodes[j]) < dist_pair:
                         min_pair = (nodes[i], nodes[j])
                         dist_pair = self.distance(nodes[i], nodes[j])
-            
-            #actualizar la matriz de distancias
+        
             nodes.remove(min_pair[0])
             nodes.remove(min_pair[1])
             for node in nodes:
@@ -146,16 +122,17 @@ class NeighborJoiningTree(PhylogeneticTree):
         return (self.get(node, pair[0]) + self.get(node, pair[1]) - self.get(pair[0], pair[1])) / 2
 
 def main():
-    sequences = ['ATTGCCATT', 'ATGGCCATT', 'ATCCAATTTT', 'ATCTTCTT', 'ACTGACC']
-    tree = UPGMATree('seq-upgma', sequences)
+    sequences = ['ATTGCCATT', 
+                 'ATGGCCATT', 
+                 'ATCCAATTTT', 
+                 'ATCTTCTT', 
+                 'ACTGACC']
+    tree = UPGMATree('test-upgma', sequences)
     tree.plot()
-    tree = NeighborJoiningTree('seq-nj', sequences)
+    tree = NeighborJoiningTree('test-neighbor', sequences)
     tree.plot()
     sequences = ['concha sifuentes', 'flores melendez', 'pino zavala', 'quispe neira', 'salas ticona', 'tupac valdivia', 'villanueva borda']
-    tree = UPGMATree('apellidos-upgma', sequences)
+    tree = UPGMATree('lastname-upgma', sequences)
     tree.plot()
-    tree = NeighborJoiningTree('apellidos-nj', sequences)
+    tree = NeighborJoiningTree('lastname-nj', sequences)
     tree.plot()
-
-if __name__ == '__main__':
-    main()
