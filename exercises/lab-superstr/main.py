@@ -1,5 +1,5 @@
-import numpy as np
-from networkx import MultiGraph
+from networkx import MultiDiGraph
+from graphviz import Digraph
 
 def complement(string: str):
     complements = str.maketrans('ATCG', 'TAGC')
@@ -13,8 +13,7 @@ def overlaps(string1 : str, string2 : str):
     return overlaps_
 
 def create_graph(strings : list):
-    graph = MultiGraph()
-    size = len(strings)
+    graph = MultiDiGraph()
     complements = [complement(string_) for string_ in strings]
     # Adding strings as nodes
     for string_, complement_ in zip(strings, complements):
@@ -25,25 +24,24 @@ def create_graph(strings : list):
         for node2 in strings:
             if node1 != node2:
                 overlaps_ = overlaps(node1, node2)
-                for key, overlap_ in enumerate(overlaps_):
-                    graph.add_edge(node1, node2, key=key, weight=overlap_)
+                for overlap_ in overlaps_:
+                    graph.add_edge(node1, node2, weight=overlap_)
         
         for node2 in complements:
-            if node1 != complement(node2):
+            if node2 != complement(node1):
                 overlaps_ = overlaps(node1, node2)
-                for key, overlap_ in enumerate(overlaps_):
-                    graph.add_edge(node1, node2, key=key, weight=overlap_)
+                for overlap_ in overlaps_:
+                    graph.add_edge(node1, node2, weight=overlap_)
                 overlaps_ = overlaps(node2, node1)
-                for key, overlap_ in enumerate(overlaps_):
-                    graph.add_edge(node2, node1, key=key, weight=overlap_)
+                for overlap_ in overlaps_:
+                    graph.add_edge(node2, node1, weight=overlap_)
     return graph
 
-def shortest_common_superstring(strings : list, min_t: int = 1e9, desired_length: int = 0, threshold: int = 2):
+def shortest_common_superstring(strings : list, min_t: int = 1e9, desired_length: int = 0, max_threshold: int = 0):
     graph = create_graph(strings)
     all_paths = []
     for node in graph.nodes:
         all_paths += hamiltonian_paths(graph, node, min_t=min_t)
-    # return all_paths
     
     results = []
     for path in all_paths:
@@ -55,12 +53,18 @@ def shortest_common_superstring(strings : list, min_t: int = 1e9, desired_length
             string = path.pop(0)
             scs = scs + string[:weight]
         results.append(scs)
-
+    results_ = []
     if desired_length > 0:
-        results = [result for result in results if desired_length - threshold <= len(result) <= desired_length + threshold]
-    return results
+        for i in range(max_threshold):
+            results_ = [result for result in results if desired_length - i <= len(result) <= desired_length + i]
+            if len(results_) > 0:
+                break
+    results_.sort(key=len)
 
-def hamiltonian_paths(graph: MultiGraph, current_node: str, path: list = [], visited: set = set(), min_t: int = 1e9, all_paths: list = []):
+    draw_graph(graph=graph)
+    return results_
+
+def hamiltonian_paths(graph: MultiDiGraph, current_node: str, path: list = [], visited: set = set(), min_t: int = 1e9, all_paths: list = []):
     visited.add(current_node)
     visited.add(complement(current_node))
     path.append(current_node)
@@ -75,7 +79,6 @@ def hamiltonian_paths(graph: MultiGraph, current_node: str, path: list = [], vis
                     weight = edge_data["weight"]
                     if weight >= min_t:
                         hamiltonian_paths(graph, neighbor, path + [weight], visited, min_t, all_paths)
-                        
 
     visited.remove(current_node)
     visited.remove(complement(current_node))
@@ -83,6 +86,15 @@ def hamiltonian_paths(graph: MultiGraph, current_node: str, path: list = [], vis
 
     return all_paths
 
+def draw_graph(graph: MultiDiGraph):
+    dot = Digraph(strict=True)
+    dot.attr(rankdir='RL')
+    dot.attr('node', shape='box')
+    for node in graph.nodes:
+        dot.node(node)
+    for node1, node2, data in graph.edges(data=True):
+        dot.edge(node1, node2, label=str(data['weight']))
+    dot.render(filename="tmp", cleanup=True)
 
 def main():
     sequences = [
@@ -95,7 +107,7 @@ def main():
         "CTCGAGTTAAGTA",
         "CGCGGGCAGTACTT"
     ]
-    ans = shortest_common_superstring(sequences, min_t=3, desired_length=55, threshold=1)
+    ans = shortest_common_superstring(sequences, min_t=2, desired_length=55, max_threshold=3)
     for i in ans:
         print(len(i), ": ", i)
 
