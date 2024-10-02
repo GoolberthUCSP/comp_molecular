@@ -37,32 +37,57 @@ def create_graph(strings : list):
                     graph.add_edge(node2, node1, weight=overlap_)
     return graph
 
-def shortest_common_superstring(strings : list, min_t: int = 1e9, desired_length: int = 0, max_threshold: int = 0):
+def shortest_common_superstring(strings : list, min_t: int = 1e9, desired_length: int = 0):
     graph = create_graph(strings)
     all_paths = []
+    global_size = sum(len(string) for string in strings)
+
     for node in graph.nodes:
-        all_paths += hamiltonian_paths(graph, node, min_t=min_t)
+        hamiltonian_paths(graph, node, min_t=min_t, all_paths=all_paths)
     
     results = []
+    formatted_results = []
+    def format(path : list, global_size : int):
+        n_strings = (len(path) + 1) // 2
+        overlap_sum = sum(path[i] for i in range(1, len(path), 2))
+        result_size = global_size - overlap_sum
+        result = path.pop(0)
+        t_size = len(result)
+        t_overlap = 0
+        result = result.ljust(result_size, '-')
+        for _ in range(n_strings - 1):
+            t_overlap += path.pop(0)
+            string = path.pop(0)
+            x = len(string)
+            string = string.rjust(t_size - t_overlap + x, '-')
+            string = string.ljust(result_size, '-')
+            t_size += x
+            result += ('\n' + string)
+        return result
+    # Formatting results: SCS and formatted SCS
     for path in all_paths:
-        if len(path) != (len(strings) * 2 - 1):
-            continue
+        formatted_results.append(format(path[:], global_size= global_size))
+        # print(path)
         scs = path.pop(0)
         while len(path) > 0:
-            weight = path.pop(0)
+            overlap = path.pop(0)
             string = path.pop(0)
-            scs = scs + string[:weight]
+            scs += string[overlap:]
         results.append(scs)
     results_ = []
+    formatted_results_ = []
+    # Filtering results
     if desired_length > 0:
-        for i in range(max_threshold):
-            results_ = [result for result in results if desired_length - i <= len(result) <= desired_length + i]
-            if len(results_) > 0:
-                break
-    results_.sort(key=len)
+        for i in range(desired_length):
+            for i in range(len(results)):
+                if desired_length - i <= len(results[i]) <= desired_length + i:
+                    results_.append(results[i])
+                    formatted_results_.append(formatted_results[i])
+                if len(results_) > 0:
+                    break
 
     draw_graph(graph=graph)
-    return results_
+    return results_, formatted_results_
 
 def hamiltonian_paths(graph: MultiDiGraph, current_node: str, path: list = [], visited: set = set(), min_t: int = 1e9, all_paths: list = []):
     visited.add(current_node)
@@ -75,7 +100,7 @@ def hamiltonian_paths(graph: MultiDiGraph, current_node: str, path: list = [], v
         neighbors = graph.neighbors(current_node)
         for neighbor in neighbors:
             if neighbor not in visited:
-                for key, edge_data in graph[current_node][neighbor].items():
+                for _, edge_data in graph[current_node][neighbor].items():
                     weight = edge_data["weight"]
                     if weight >= min_t:
                         hamiltonian_paths(graph, neighbor, path + [weight], visited, min_t, all_paths)
@@ -84,11 +109,8 @@ def hamiltonian_paths(graph: MultiDiGraph, current_node: str, path: list = [], v
     visited.remove(complement(current_node))
     path.pop()
 
-    return all_paths
-
 def draw_graph(graph: MultiDiGraph):
-    dot = Digraph(strict=True)
-    dot.attr(rankdir='RL')
+    dot = Digraph()
     dot.attr('node', shape='box')
     for node in graph.nodes:
         dot.node(node)
@@ -107,9 +129,12 @@ def main():
         "CTCGAGTTAAGTA",
         "CGCGGGCAGTACTT"
     ]
-    ans = shortest_common_superstring(sequences, min_t=2, desired_length=55, max_threshold=3)
-    for i in ans:
-        print(len(i), ": ", i)
-
+    results, formatted = shortest_common_superstring(sequences, min_t=2, 
+                                                     desired_length=55)
+    for result, formatted_ in zip(results, formatted):
+        print(f"SIZE: {len(result)} \n{formatted_}")
+        print("_" * len(result))
+        print(result)
+        
 if __name__ == "__main__":
     main()
