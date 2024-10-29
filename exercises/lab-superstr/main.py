@@ -12,7 +12,7 @@ def overlaps(string1 : str, string2 : str):
             overlaps_.append(i)
     return overlaps_
 
-def create_graph(strings : list):
+def create_graph(strings : list, min_t: int = 1e9):
     graph = MultiDiGraph()
     complements = [complement(string_) for string_ in strings]
     # Adding strings as nodes
@@ -25,25 +25,28 @@ def create_graph(strings : list):
             if node1 != node2:
                 overlaps_ = overlaps(node1, node2)
                 for overlap_ in overlaps_:
-                    graph.add_edge(node1, node2, weight=overlap_)
+                    if overlap_ >= min_t:
+                        graph.add_edge(node1, node2, weight=overlap_)
         
         for node2 in complements:
             if node2 != complement(node1):
                 overlaps_ = overlaps(node1, node2)
                 for overlap_ in overlaps_:
-                    graph.add_edge(node1, node2, weight=overlap_)
+                    if overlap_ >= min_t:
+                        graph.add_edge(node1, node2, weight=overlap_)
                 overlaps_ = overlaps(node2, node1)
                 for overlap_ in overlaps_:
-                    graph.add_edge(node2, node1, weight=overlap_)
+                    if overlap_ >= min_t:
+                        graph.add_edge(node2, node1, weight=overlap_)
     return graph
 
 def shortest_common_superstring(strings : list, min_t: int = 1e9, desired_length: int = 0):
-    graph = create_graph(strings)
+    graph = create_graph(strings, min_t=min_t)
     all_paths = []
     global_size = sum(len(string) for string in strings)
 
     for node in graph.nodes:
-        hamiltonian_paths(graph, node, min_t=min_t, all_paths=all_paths)
+        hamiltonian_paths(graph, node, all_paths=all_paths)
     
     results = []
     formatted_results = []
@@ -89,7 +92,7 @@ def shortest_common_superstring(strings : list, min_t: int = 1e9, desired_length
     draw_graph(graph=graph)
     return results_, formatted_results_
 
-def hamiltonian_paths(graph: MultiDiGraph, current_node: str, path: list = [], visited: set = set(), min_t: int = 1e9, all_paths: list = []):
+def hamiltonian_paths(graph: MultiDiGraph, current_node: str, path: list = [], visited: set = set(), all_paths: list = []):
     visited.add(current_node)
     visited.add(complement(current_node))
     path.append(current_node)
@@ -102,8 +105,7 @@ def hamiltonian_paths(graph: MultiDiGraph, current_node: str, path: list = [], v
             if neighbor not in visited:
                 for _, edge_data in graph[current_node][neighbor].items():
                     weight = edge_data["weight"]
-                    if weight >= min_t:
-                        hamiltonian_paths(graph, neighbor, path + [weight], visited, min_t, all_paths)
+                    hamiltonian_paths(graph, neighbor, path + [weight], visited, all_paths)
 
     visited.remove(current_node)
     visited.remove(complement(current_node))
